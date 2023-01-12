@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions: write-all
+
+jobs:
+  save-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Save controller-manager
+        run: docker pull volcanosh/vc-controller-manager:v1.7.0; docker save volcanosh/vc-controller-manager:v1.7.0 -o controller-manager.tar.gz
+      - name: Save scheduler
+        run: docker pull volcanosh/vc-scheduler:v1.7.0; docker save volcanosh/vc-scheduler:v1.7.0 -o scheduler.tar.gz
+      - name: Save web-hook-manager
+        run: docker pull volcanosh/vc-webhook-manager:v1.7.0; docker save volcanosh/vc-webhook-manager:v1.7.0 -o webhook-manager.tar.gz
+      - uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          delete_release: true
+          tag_name: v1.7.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag release
+        uses: tvdias/github-tagger@v0.0.2
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v1.7.0
+
+      # Creates the new release with the binary as a release asset.
+      # If the previous Action was skipped, then this keeps the same tag as the
+      # previous release.
+      - name: Create new release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: "v1.7.0"
+          name: "v1.7.0"
+          tag_name: v1.7.0
+          files: |
+            controller-manager.tar.gz
+            scheduler.tar.gz
+            webhook-manager.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
