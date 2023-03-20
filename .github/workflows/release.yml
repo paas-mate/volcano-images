@@ -27,7 +27,7 @@ jobs:
         run: docker pull volcanosh/vc-scheduler:v1.7.0; docker save volcanosh/vc-scheduler:v1.7.0 -o scheduler.tar.gz
       - name: Save web-hook-manager
         run: docker pull volcanosh/vc-webhook-manager:v1.7.0; docker save volcanosh/vc-webhook-manager:v1.7.0 -o webhook-manager.tar.gz
-      - uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      - uses: dev-drprasad/delete-tag-and-release@v0.2.1
         with:
           delete_release: true
           tag_name: v1.7.0
